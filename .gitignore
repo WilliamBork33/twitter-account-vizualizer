@@ -1,0 +1,10 @@
+# See https://help.github.com/ignore-files/ for more about ignoring files.
+
+# rtweet API token details
+.Renviron_master
+
+# rtweet API token
+.rtweet_token.rds
+
+# rs connect file from shinyapps.io
+/rsconnect
