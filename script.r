@@ -1,92 +1,98 @@
 ################################################################################
 #//////////////////////////////////////////////////////////////////////////////#
-#    ///// SETTING UP SCRIPT //////////////////////////////////////////////////#
+#///////// SETTING UP SHINY APP ENVIRONMENT ///////////////////////////////////#
 #//////////////////////////////////////////////////////////////////////////////#
 ################################################################################
 
-
-########################################
-# INSTALL PACKAGES & LOAD LIBRARIES    #
-########################################
-
-## Install packages (if necessary) to your R *(uncomment these lines to run)
+######################################
+## INSTALL PACKAGES *(if necessary) ##
+######################################
+## Install packages to your local R (if first time using these packages) *(uncomment below lines to run)
 #install.packages("rtweet")
 #install.packages("tidyverse")
 
+#######################################
+## LOAD INSTALLED PACKAGE LIBRARIES  ##
+#######################################
 ## Load libraries
 library(rtweet)
 library(tidyverse)
+library(shiny)
 
-## Quick overviews for getting started with rtweet *(uncomment these lines to run)
+## Quick overviews for getting started with rtweet *(uncomment below lines to run)
 #vignette("auth", package = "rtweet")
 #vignette("intro", package = "rtweet")
 
 
-###################################################
-# CHECK AND SET WORKING DIRECTORY *(IF NECESSARY) #
-###################################################
-
+#####################################################
+## CHECK AND SET WORKING DIRECTORY *(if necessary) ##
+#####################################################
 ## Working directory should be the home level ("./") folder for the app and end with: twitter-account-visualizer-app/
-
-## Check that your path is correct and ends in "/twitter-account-visualizer-app" *(uncomment these lines to run)
+## Check that your path is correct and ends in "/twitter-account-visualizer-app" *(uncomment below line to run)
 #getwd()
 
-## If path incorrect, run setwd("YOUR/PATH/TO/THE/APP/HERE") to set your path correctly *(uncomment these lines to run)
-#setwd("")
+## If path incorrect, run setwd("YOUR/PATH/TO/THE/APP/HERE") to set your path correctly to end in "/twitter-account-visualizer-app" *(uncomment below line to run)
+#setwd("./twitter-account-visualizer-app")
 
 
 ########################################
-# READ & LOAD ENVIRONMENT VARIABLES    #
+## READ & LOAD ENVIRONMENT VARIABLES  ##
 ########################################
-
-## First must type in your API details from Twitter into the .Renviron file
-## Otherwise readRenviron will only read empty values
-
-## Read this .Renviron file for rtweet API details *(Uncomment these lines to run)
-## Remember to first input your rtweet API details
-#readRenviron(".Renviron")
-
-## *(Keep commented)
-## Line is commented because this .Renviron file doesn't exist in the repo (it was "gitignored")
-## .Renviron_master was used for production version of app hosted on https://www.shinyapps.io/
-readRenviron(".Renviron_master")
+## Read this .Renviron file and set environment variables as defined in file
+readRenviron(".Renviron")
+#readRenviron(".Renviron_master") ##(Keep this line commented) because .Renviron_master file doesn't exist in the repo (it was "gitignored"). Is used for production version of app hosted on https://www.shinyapps.io/
 
 ## Load rtweet API details from .Renviron into global environment
 api_key <- Sys.getenv("API_KEY")
 api_secret_key <- Sys.getenv("API_SECRET_KEY")
 access_token <- Sys.getenv("ACCESS_TOKEN")
 access_token_secret <- Sys.getenv("ACCESS_TOKEN_SECRET")
+twitter_pat <- Sys.getenv("TWITTER_PAT")
 
 
-################################################################################
-# CREATE NEW RTWEET TWITTER API TOKEN *(only run if first time running script)  #
-################################################################################
-
-## Create an rtweet_token needed to authorize Twitter account API *(uncomment these lines to run)
-## Read more: https://rtweet.info/articles/auth.html
-#rtweet_token <- create_token(
-#  app              = "twitter-account-visualizer",
-#  consumer_key     = api_key,
-#  consumer_secret  = api_secret_key,
-#  access_token     = access_token,
-#  access_secret    = access_token_secret,
-#  set_renv         = FALSE)
+#######################################################
+## MANUALLY GENERATE API AUTHENTICATION TOKEN        ##
+## USING A SELF-CREATED TOKEN                        ##
+## *(if first time running script)                   ##
+## Read more: https://rtweet.info/articles/auth.html ## 
+#######################################################
+## Create an rtweet_token needed to authorize Twitter account API *(uncomment below lines to run)
+## Must have Twitter Developer Account to obtain your own API details for setting up application.
+rtweet_token <- create_token(
+  app              = "twitter-account-visualizer",
+  consumer_key     = api_key,
+  consumer_secret  = api_secret_key,
+  access_token     = access_token,
+  access_secret    = access_token_secret,
+  set_renv         = FALSE)
 
 ## Construct a file name and path for saving rtweet token
-## Define path of project home directory *(uncomment these lines to run)
-#app_directory <- path.expand("./")
+## Define path of project home directory *(uncomment below line to run)
+app_directory <- path.expand("./")
 
-## Define file name and combine with path from above *(uncomment these lines to run)
-#file_name <- file.path(app_directory, ".rtweet_token.rds")
+## Define file name and combine with path from above *(uncomment below line to run)
+file_name <- file.path(app_directory, ".rtweet_token.rds")
 
-## Save token to app home directory *(uncomment these lines to run)
-#saveRDS(rtweet_token, file = file_name)
+## Save token to app home directory *(uncomment below line to run)
+saveRDS(rtweet_token, file = file_name)
 
-## Read the token file just to check it out *(uncomment these lines to run)
-#readRDS(".rtweet_token.rds")
+## Read the token file just to check it out *(uncomment below line to run)
+readRDS(".rtweet_token.rds")
 
-## Write the path to the token into the .Renviron file (so it can be found and loaded in next time) *(uncomment these lines to run)
-#cat(paste0("TWITTER_PAT=", file_name), file = file.path(app_directory, ".Renviron_master"), append = TRUE)
+## Just another way of viewing the token by calling its name *(uncomment below line to run)
+rtweet_token
+
+## Write the path to the token into the .Renviron file (so it can be found and loaded in next time) *(uncomment below line to run)
+cat(paste0("TWITTER_PAT=", file_name), file = file.path(app_directory, ".Renviron"), append = TRUE)
+
+## This function will search for tokens using R, internal, and global environment variables (in that order).
+## It will prompt your web browser to allow your rstat2twitter to access your account. Only need to run once.
+get_token()
+
+
+## Docs for Shiny Apps and deploying Shiny Apps
+## https://www.shinyapps.io/
+## https://shiny.rstudio.com/articles/shinyapps.html
 
 
 ################################################################################
@@ -95,231 +101,227 @@ access_token_secret <- Sys.getenv("ACCESS_TOKEN_SECRET")
 #//////////////////////////////////////////////////////////////////////////////#
 ################################################################################
 
+#########################################
+## BUILD DATASET: USER PROFILE         ##
+#########################################
+## Create variable to hold user's Twitter name
+twitter_username <- "github"
 
-########################################
-# TYLER PROFILE DATA                   #
-########################################
+## look_up user by searching for their Twitter username
+user <- lookup_users(twitter_username)
 
-# look_up Tyler
-ty <- lookup_users("TylaBillz30")
-
-# Get tweets off Ty's profile timeline
-ty_timeline <- get_timeline("TylaBillz30", n = 1000)
+## Get tweets off user's profile timeline
+user_timeline <- get_timeline(user$screen_name, n = 1000)
 
 
-########################################
-# WHO TYLER FOLLOWS                    #
-########################################
-
-# Get user IDs of accounts followed by Ty
-followed_by_ty_ids <- get_friends("TylaBillz30", n = 1000)
-
-# Lookup data (by user_id) on accounts followed by Ty
-followed_by_ty_accounts <- lookup_users(followed_by_ty_ids$user_id)
+############################################
+## BUILD DATASET: USER'S FAVORITED TWEETS ##
+############################################
+## Look_up data on tweets favorited by User
+favorited_by_user <- get_favorites(user$user_id, n = 1000)
 
 
 ########################################
-# WHO FOLLOWS TYLER                    #
+## BUILD DATASET: WHO USER FOLLOWS    ##
 ########################################
+## Get user IDs of accounts followed by user
+followed_by_user_ids <- get_friends(user$user_id, n = 1000)
 
-# Get user IDs of accounts following Ty
-following_ty_ids <- get_followers("TylaBillz30", n = 1000)
-
-## Lookup data (by user_id) on accounts following Ty
-following_ty_accounts <- lookup_users(following_ty_ids$user_id)
+## Look_up data (by user_id) on accounts followed by user
+followed_by_user_accounts <- lookup_users(followed_by_user_ids$user_id)
 
 
 ########################################
-# TYLER'S FAVORITED TWEETS             #
+## BUILD DATASET: WHO FOLLOWS USER    ##
 ########################################
+## Get user IDs of accounts following User
+following_user_ids <- get_followers(user$user_id, n = 1000)
 
-# lookup data on tweets favorited by Ty
-favorited_by_ty <- get_favorites("TylaBillz30", n = 1000)
+## Lookup data (by user_id) on accounts following User
+following_user_accounts <- lookup_users(following_user_ids$user_id)
 
 
 ################################################################################
 #//////////////////////////////////////////////////////////////////////////////#
-#    ///// VISUALIZATION PLOTS ////////////////////////////////////////////////#
+#///////// BUILD VISUALIZATION PLOTS //////////////////////////////////////////#
 #//////////////////////////////////////////////////////////////////////////////#
 ################################################################################
 
-
 ########################################
-# TYLER'S TWEET FREQUENCY              #
+## PLOT: USER'S TWEET FREQUENCY       ##
 ########################################
-
-# plot the frequency of tweets over time
-plot_tweet_frequency <- ty_timeline %>%
-  dplyr::filter(created_at > "2020-01-01") %>%
-  dplyr::group_by(screen_name) %>%
-  ts_plot("days") +
-  ggplot2::geom_point() +
-  ggplot2::theme_minimal() +
-  ggplot2::theme(
-    legend.title = ggplot2::element_blank(),
-    legend.position = "bottom",
-    plot.title = ggplot2::element_text(face = "bold")) +
-  ggplot2::labs(
-    x = "Date", y = "Count",
-    title = "Frequency of Tweets by Tyler",
-    subtitle = "Number of tweets per day over the past week",
-    caption = "\nSource: Data collected from Twitter's REST API via rtweet"
-  )
-
-
-##############################################################
-# LOCATION OF TY'S FOLLOWERS (ACCORDING TO THEIR PROFILES)   #
-##############################################################
-
-# Count of unique locations for accounts following Ty
-following_ty_location_count <- length(unique(following_ty_accounts$location))
-
-# Where Ty's followers are located
-plot_following_ty_accounts <- following_ty_accounts %>%
-  count(location, sort = TRUE) %>%
-  mutate(location = reorder(location, n)) %>%
-  na.omit() %>%
-  top_n(10) %>%
-  ggplot(aes(x = location, y = n)) +
-  geom_col() +
-  coord_flip() +
-  labs(x = "Location",
-       y = "Count",
-       title = "Where Ty's Twitter followers are from - unique locations ")
-
-
-#######################################################################
-# LOCATION OF ACCOUNTS FOLLOWED BY TY (ACCORDING TO THEIR PROFILES)   #
-#######################################################################
-
-# Where accounts Ty's follows are located
-plot_followed_by_ty_accounts <- followed_by_ty_accounts %>%
-  count(location, sort = TRUE) %>%
-  mutate(location = reorder(location, n)) %>%
-  na.omit() %>%
-  top_n(10) %>%
-  ggplot(aes(x = location, y = n)) +
-  geom_col() +
-  coord_flip() +
-  labs(x = "Location",
-       y = "Count",
-       title = "Where accounts followed by Ty's are located - unique locations ")
+## Create plot for the frequency of tweets over time
+plot_tweet_frequency <- user_timeline %>%
+    dplyr::filter(created_at > "2020-01-01") %>%
+    dplyr::group_by(screen_name) %>%
+    ts_plot("days") +
+    ggplot2::geom_point() +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      legend.title = ggplot2::element_blank(),
+      legend.position = "bottom",
+      plot.title = ggplot2::element_text(face = "bold")) +
+    ggplot2::labs(
+      x = "Date", y = "Count",
+      title = "Frequency of Tweets by User",
+      subtitle = "Number of tweets per day over the past week",
+      caption = "\nSource: Data collected from Twitter's REST API via rtweet")
 
 
 ########################################
-# WHO TYLER FAVORITED THE MOST         #
+## PLOT: WHO USER FAVORITED THE MOST  ##
 ########################################
-
-# Who Ty favorites the most
-plot_favorited_by_ty <- favorited_by_ty %>%
-  count(screen_name, sort = TRUE) %>%
-  mutate(screen_name = reorder(screen_name, n)) %>%
-  na.omit() %>%
-  top_n(10) %>%
-  ggplot(aes(x = screen_name, y = n)) +
-  geom_col() +
-  coord_flip() +
-  labs(x = "User",
-       y = "Count",
-       title = "Who Ty favorited the most")
-
-
-########################################
-# WHO TYLER REPLIED TO THE MOST        #
-########################################
-
-# Who Ty replied to the most
-plot_ty_replied <- ty_timeline %>%
-  count(reply_to_screen_name, sort = TRUE) %>%
-  mutate(reply_to_screen_name = reorder(reply_to_screen_name, n)) %>%
-  na.omit() %>%
-  top_n(10) %>%
-  ggplot(aes(x = reply_to_screen_name, y = n)) +
-  geom_col() +
-  coord_flip() +
-  labs(x = "User",
-       y = "Count",
-       title = "Who Ty replied to most")
+## Create plot for who User favorited the most
+plot_favorited_by_user <- favorited_by_user %>%
+    count(screen_name, sort = TRUE) %>%
+    mutate(screen_name = reorder(screen_name, n)) %>%
+    na.omit() %>%
+    top_n(10) %>%
+    ggplot(aes(x = screen_name, y = n)) +
+    geom_col() +
+    coord_flip() +
+    labs(x = "User",
+         y = "Count",
+         title = "Who User Favorited the Most")
 
 
 ########################################
-# WHO TYLER RETWEETED THE MOST         #
+## PLOT: WHO USER RETWEETED THE MOST  ##
 ########################################
+## Create plot for who User retweeted the most
+plot_user_retweeted <- user_timeline %>%
+    count(retweet_screen_name, sort = TRUE) %>%
+    mutate(retweet_screen_name = reorder(retweet_screen_name, n)) %>%
+    na.omit() %>%
+    top_n(10) %>%
+    ggplot(aes(x = retweet_screen_name, y = n)) +
+    geom_col() +
+    coord_flip() +
+    labs(x = "User",
+         y = "Count",
+         title = "Who User Retweeted the Most")
 
-# Who Ty retweeted the most
-plot_ty_retweeted <- ty_timeline %>%
-  count(retweet_screen_name, sort = TRUE) %>%
-  mutate(retweet_screen_name = reorder(retweet_screen_name, n)) %>%
-  na.omit() %>%
-  top_n(10) %>%
-  ggplot(aes(x = retweet_screen_name, y = n)) +
-  geom_col() +
-  coord_flip() +
-  labs(x = "User",
-       y = "Count",
-       title = "Who Ty retweeted the most")
+
+########################################
+## PLOT: WHO USER REPLIED TO THE MOST ##
+########################################
+## Create plot for who User replied to the most
+plot_user_replied <- user_timeline %>%
+    count(reply_to_screen_name, sort = TRUE) %>%
+    mutate(reply_to_screen_name = reorder(reply_to_screen_name, n)) %>%
+    na.omit() %>%
+    top_n(10) %>%
+    ggplot(aes(x = reply_to_screen_name, y = n)) +
+    geom_col() +
+    coord_flip() +
+    labs(x = "User",
+         y = "Count",
+         title = "Who User Replied to the Most")
 
 
-################################################################################
-# WHO TWEETED @ TYLER THE MOST  (INCLUDES TWEETS, RETWEETS, AND QUOTE TWEETS)  #
-################################################################################
+######################################################################################
+## PLOT: WHO TWEETED @ USER THE MOST (INCLUDES TWEETS, RETWEETS, AND QUOTE TWEETS)  ##
+######################################################################################
+## BREAKS (APP WON'T LAUNCH) IF NO @'s WITHIN API TIME FRAME
+#########################################
+## Concatenate the "@" symbol and the user's screen name into a variable used for searching tweets
+#user_screen_name_string <- paste("@", toString(user$screen_name), sep="")
 
-## Search for tweets containing the text "@TylaBillz30"
-tweeted_at_ty <- search_tweets("@TylaBillz30", n = 2500, retryonratelimit = TRUE)
+## Search for tweets containing "@" + user's screen_name
+#tweeted_at_user <- search_tweets(user_screen_name_string, n = 2500, retryonratelimit = TRUE)
 
-# Who tweeted @TylerBillz30 the most
-plot_tweeted_at_ty <- tweeted_at_ty %>%
-  count(screen_name, sort = TRUE) %>%
-  mutate(screen_name = reorder(screen_name, n)) %>%
-  na.omit() %>%
-  top_n(10) %>%
-  ggplot(aes(x = screen_name, y = n)) +
-  geom_col() +
-  coord_flip() +
-  labs(x = "User",
-       y = "Count",
-       title = "Who tweeted @Ty the most")
+## Create plot for who tweeted @User the most
+#  plot_tweeted_at_user <- tweeted_at_user %>%
+#    count(screen_name, sort = TRUE) %>%
+#    mutate(screen_name = reorder(screen_name, n)) %>%
+#    na.omit() %>%
+#    top_n(10) %>%
+#    ggplot(aes(x = screen_name, y = n)) +
+#    geom_col() +
+#    coord_flip() +
+#    labs(x = "User",
+#         y = "Count",
+#         title = "Who Tweeted @User the Most")
 
 
 ######################################################################
-# WHO TYLER MENTIONED VIA TWEETS, RETWEETS, AND QUOTE TWEETS         #
+## WHO USER MENTIONED VIA TWEETS, RETWEETS, AND QUOTE TWEETS        ##
 ######################################################################
+## THROWS ERROR AND WON'T PROVIDE DATA BUT DOESN'T BREAK APP
+#########################################
+## Get list of mentioned accounts in User's tweets (then unlist them because some tweets have multiple mentions per tweet)
+unlisted_mentions_screen_name <- unlist(user_timeline$mentions_screen_name)
 
-# Get list of mentioned accounts in Ty's tweets (then unlist because some tweets have multiple mentions)
-unlisted_mentions_screen_name <- unlist(ty_timeline$mentions_screen_name)
+## Turn unlisted_mentions_screen_name into a new data frame which is used in make subsequent plot
+mentioned_by_user <- data.frame(unlisted_mentions_screen_name)
 
-# Turn unlisted_mentions_screen_name into a new data frame
-mentioned_by_ty <- data.frame(unlisted_mentions_screen_name)
+## Create plot for who User mentioned the most via tweets, retweets, and quote tweets
+plot_mentioned_by_user <- mentioned_by_user %>%
+    count(unlisted_mentions_screen_name, sort = TRUE) %>%
+    mutate(unlisted_mentions_screen_name = reorder(unlisted_mentions_screen_name, n)) %>%
+    na.omit() %>%
+    top_n(10) %>%
+    ggplot(aes(x = unlisted_mentions_screen_name, y = n)) +
+    geom_col() +
+    coord_flip() +
+    labs(x = "User",
+         y = "Count",
+         title = "Who User Mentioned the Most in Tweets, Retweets, and Quote Tweets")
 
-# Who Ty mentioned the most
-plot_mentioned_by_ty <- mentioned_by_ty %>%
-  count(unlisted_mentions_screen_name, sort = TRUE) %>%
-  mutate(unlisted_mentions_screen_name = reorder(unlisted_mentions_screen_name, n)) %>%
-  na.omit() %>%
-  top_n(10) %>%
-  ggplot(aes(x = unlisted_mentions_screen_name, y = n)) +
-  geom_col() +
-  coord_flip() +
-  labs(x = "User",
-       y = "Count",
-       title = "Who Ty mentioned the most in Tweets, Retweets, and Quote Tweets")
+
+######################################################################
+## PLOT: LOCATION OF USER'S FOLLOWERS (ACCORDING TO THEIR PROFILES) ##
+######################################################################
+## Count of unique locations for accounts following User
+following_user_location_count <- length(unique(following_user_accounts$location))
+
+## Create plot for where User's followers are located
+plot_following_user_accounts <- following_user_accounts %>%
+    count(location, sort = TRUE) %>%
+    mutate(location = reorder(location, n)) %>%
+    na.omit() %>%
+    top_n(10) %>%
+    ggplot(aes(x = location, y = n)) +
+    geom_col() +
+    coord_flip() +
+    labs(x = "Location",
+         y = "Count",
+         title = "Where User's Twitter Followers Are From - Unique Locations ")
+
+
+###############################################################################
+## PLOT: LOCATION OF ACCOUNTS FOLLOWED BY USER (ACCORDING TO THEIR PROFILES) ##
+###############################################################################
+## Create plot for where accounts followed by User are located
+plot_followed_by_user_accounts <- followed_by_user_accounts %>%
+    count(location, sort = TRUE) %>%
+    mutate(location = reorder(location, n)) %>%
+    na.omit() %>%
+    top_n(10) %>%
+    ggplot(aes(x = location, y = n)) +
+    geom_col() +
+    coord_flip() +
+    labs(x = "Location",
+         y = "Count",
+         title = "Where Accounts Followed by User Are Located - Unique Locations ")
 
 
 ########################################
-# CALL ALL PLOTS                       #
+## CALL ALL PLOTS                     ##
 ########################################
+## Call all plots
 plot_tweet_frequency
-plot_following_ty_accounts
-plot_followed_by_ty_accounts
-plot_favorited_by_ty
-plot_ty_replied
-plot_ty_retweeted
-plot_tweeted_at_ty
-plot_mentioned_by_ty
+plot_favorited_by_user
+plot_user_retweeted
+plot_user_replied
+plot_tweeted_at_user
+plot_mentioned_by_user
+plot_following_user_accounts
+plot_followed_by_user_accounts
 
 
 ########################################
-# END SCRIPT                           #
+## END SCRIPT                         ##
 ########################################
 
 
@@ -337,3 +339,4 @@ plot_mentioned_by_ty
 # https://shiny.rstudio.com/tutorial/
 # https://github.com/ropensci/rtweet
 # https://rtweet.info/index.html
+
